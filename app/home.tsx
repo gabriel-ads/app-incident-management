@@ -1,74 +1,74 @@
-import { Feather } from '@expo/vector-icons';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import axios from 'axios';
 import { Link } from 'expo-router';
-import React, { useState } from 'react';
-import { Button, SafeAreaView, ScrollView, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { ActivityIndicator, SafeAreaView, Text, TouchableOpacity, View } from 'react-native';
 import * as Animatable from 'react-native-animatable'
+import { IncidentList, IncidentsData} from '~/components/IncidentList';
 import { Search } from '~/components/Search';
 
-export default function Register() {
-  const [email, setEmail] = useState<string>()
-  const [password, setPassword] = useState<string>()
+interface User {
+  id: number
+  name: string
+  email: string
+  email_verified_at: any
+  created_at: string
+  updated_at: string
+}
+
+
+export default function Home() {
+  const [loading, setLoading] = useState<boolean>(true)
+  const [user, setUser] = useState<User>()
+  const [incidentsData, setIncidentsData] = useState<IncidentsData>()
+  
+  useEffect(() => {
+    const fetchData = async () =>{
+      try {
+        const token = await AsyncStorage.getItem('jwt_token');
+        const user = await axios.post<User>('http://192.168.0.86/api/auth/me', {}, {headers: {Authorization: `Bearer ${token}`}})
+        setUser(user.data)
+        setLoading(false)
+
+        const incidentsData = await axios.get<IncidentsData>('http://192.168.0.86/api/incidents', {headers: {Authorization: `Bearer ${token}`}})
+        setIncidentsData(incidentsData.data)
+
+      } catch (error: any) {
+        console.log(error)
+      }
+    }
+    fetchData()
+  }, [])
+
+  if(loading){
+    return(
+      <View className='flex-1 justify-center items-center'>
+        <ActivityIndicator size="large" color="#A04747" />
+        <Text>Carregando...</Text>
+      </View>
+    )
+  }
   return (
     <>
       
       <SafeAreaView className={styles.container}>
         <Animatable.View animation="fadeInLeft" delay={300} className={styles.containerHeader}>
-          <Text className={styles.message}>Olá, nome</Text>
+          <Text className={styles.message}>Olá, {user?.name}</Text>
         </Animatable.View>
       
       
         <View className={styles.containerForm}>
           <Search />
-
-          <ScrollView>
-            <View className='flex gap-2 mt-4'>
-
-              <View className='flex flex-row border-zinc-400 border-2 bg-zinc-400 h-20 rounded-3xl '>
-                <View className='flex h-full w-12 rounded-l-2xl justify-center items-center '>
-                  <Feather name='x-octagon' size={28} color={'#E74C3C'}/>
-                </View>
-                <View className='flex justify-center'>
-                  <Text className='text-white font-bold text-2xl'>Titulo grande para testar</Text>
-                  <Text className='text-black'>serasa.com.br</Text>
-                </View>
-              </View>
-
-              <View className='flex flex-row border-zinc-400 border-2 bg-zinc-400 h-20 rounded-3xl '>
-                <View className='flex h-full w-12 rounded-l-2xl justify-center items-center '>
-                  <Feather name='alert-triangle' size={28} color={'#F4D03F'}/>
-                </View>
-                <View className='flex justify-center'>
-                  <Text className='text-white font-bold text-2xl'>Titulo grande para testar</Text>
-                  <Text className='text-black'>serasa.com.br</Text>
-                </View>
-              </View>
-
-              <View className='flex flex-row border-zinc-400 border-2 bg-zinc-400 h-20 rounded-3xl '>
-                <View className='flex h-full w-12 rounded-l-2xl justify-center items-center '>
-                  <Feather name='alert-circle' size={28} color={'#3498DB'}/>
-                </View>
-                <View className='flex justify-center'>
-                  <Text className='text-white font-bold text-2xl'>Titulo grande para testar</Text>
-                  <Text className='text-black'>serasa.com.br</Text>
-                </View>
-              </View>
-
-              <View className='flex flex-row border-zinc-400 border-2 bg-zinc-400 h-20 rounded-3xl '>
-                <View className='flex h-full w-12 rounded-l-2xl justify-center items-center '>
-                  <Feather name='alert-octagon' size={28} color={'#ffffff'}/>
-                </View>
-                <View className='flex justify-center'>
-                  <Text className='text-white font-bold text-2xl'>Titulo grande para testar</Text>
-                  <Text className='text-black'>serasa.com.br</Text>
-                </View>
-              </View>
-
-            </View>
-            
-          </ScrollView>
+          {incidentsData && <IncidentList incidents={incidentsData.incidents} />}
+          
+          <Link href={{ pathname: '/about'}} asChild>
+              <TouchableOpacity className='bg-main-red w-full rounded-md py-6 mt-4 justify-center items-center mb-2'>
+                <Text className='text-white text-lg font-bold'>
+                  Reportar novo incidente
+                </Text>
+              </TouchableOpacity>
+          </Link>
         </View>
-        
-
       </SafeAreaView>
     </>
   );

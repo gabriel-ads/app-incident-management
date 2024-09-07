@@ -1,6 +1,6 @@
 import '../global.css';
 
-import { Stack } from 'expo-router';
+import { Stack, Tabs } from 'expo-router';
 
 export default function Layout() {
   return (
@@ -9,6 +9,7 @@ export default function Layout() {
     <Stack.Screen name="login" options={{headerShown: false }} />
     <Stack.Screen name="register" options={{headerShown: false }} />
     <Stack.Screen name="home" options={{headerShown: false }} />
+    <Stack.Screen name="about" options={{headerShown: false }} />
   </Stack>
   )
 }
