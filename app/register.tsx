@@ -1,9 +1,9 @@
-import {Link } from 'expo-router';
+import { Link } from 'expo-router';
 import React, { useState } from 'react';
 import { Button, SafeAreaView, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import * as Animatable from 'react-native-animatable'
 
-export default function Login() {
+export default function Register() {
   const [email, setEmail] = useState<string>()
   const [password, setPassword] = useState<string>()
   return (
@@ -11,30 +11,24 @@ export default function Login() {
       
       <SafeAreaView className={styles.container}>
         <Animatable.View animation="fadeInLeft" delay={300} className={styles.containerHeader}>
-          <Text className={styles.message}>Bem-vindo(a)</Text>
+          <Text className={styles.message}>Registre-se</Text>
         </Animatable.View>
       
       
         <Animatable.View animation="fadeInUp" className={styles.containerForm}>
 
+          <Text className={styles.title}>Nome</Text>
+          <TextInput className={styles.input} placeholder='Digite seu nome'/>
+
           <Text className={styles.title}>Email</Text>
-          <TextInput className={styles.input} placeholder='Digite um email'/>
+          <TextInput className={styles.input} placeholder='Digite seu melhor email'/>
 
           <Text className={styles.title}>Senha</Text>
           <TextInput className={styles.input}placeholder='Sua senha'/>
         
-
           <TouchableOpacity className={styles.button}>
-            <Link href={{ pathname: '/home'}}>
-              <Text className={styles.buttonText}>Acessar</Text>
-            </Link>
+            <Text className={styles.buttonText}>Cadastrar</Text>
           </TouchableOpacity>
-
-            <TouchableOpacity className={styles.buttonRegister}>
-              <Link href={{ pathname: '/register'}}>
-                <Text className={styles.registerText}>Não Possui uma conta? Cadastre-se</Text>
-              </Link>
-            </TouchableOpacity>
         </Animatable.View>
 
       </SafeAreaView>

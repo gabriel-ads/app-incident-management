@@ -3,10 +3,10 @@ import React, { useState } from 'react';
 import { View, TouchableOpacity, Text } from 'react-native';
 import * as Animatable from 'react-native-animatable'
 
-export default function Login() {
+export default function index() {
   return (
     <>
-    <Stack.Screen options={{headerShown: false }} />
+    
     <View className={styles.container}>
       
       <View className={styles.containerLogo}>
