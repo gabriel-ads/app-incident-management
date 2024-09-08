@@ -61,7 +61,7 @@ export default function Home() {
           <Search />
           {incidentsData && <IncidentList incidents={incidentsData.incidents} />}
           
-          <Link href={{ pathname: '/about'}} asChild>
+          <Link href={{ pathname: '/about', params: {user_id: user?.id}}} asChild>
               <TouchableOpacity className='bg-main-red w-full rounded-md py-6 mt-4 justify-center items-center mb-2'>
                 <Text className='text-white text-lg font-bold'>
                   Reportar novo incidente

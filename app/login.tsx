@@ -75,7 +75,7 @@ export default function Login() {
             render={({field: {value, onChange}}) => (
               <Input
                 title='E-mail'
-                placeholder='Digite um email' 
+                placeholder='Digite um e-mail' 
                 value={value} 
                 onChangeText={onChange}/>
             )}

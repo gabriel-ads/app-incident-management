@@ -1,8 +1,8 @@
 import axios from 'axios';
 import { router } from 'expo-router';
-import  React, { useState } from 'react';
+import  { useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
-import { ActivityIndicator, Alert, SafeAreaView, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, Alert, SafeAreaView, Text, TouchableOpacity, View } from 'react-native';
 import * as Animatable from 'react-native-animatable'
 import { Input } from '~/components/Input';
 
@@ -103,7 +103,7 @@ export default function Register() {
             render={({field: {value, onChange}})=>(
               <Input
                 title='Email' 
-                placeholder='Digite seu melhor email' 
+                placeholder='Digite seu melhor e-mail' 
                 value={value} 
                 onChangeText={onChange}
               />

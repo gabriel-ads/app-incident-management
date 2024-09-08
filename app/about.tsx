@@ -1,22 +1,119 @@
-import { Link } from 'expo-router';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import axios from 'axios';
+import { router, useLocalSearchParams } from 'expo-router';
 import { useState } from 'react';
-import { Button, SafeAreaView, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { Controller, useForm } from 'react-hook-form';
+import { Alert, SafeAreaView, Text, TextInput, TouchableOpacity } from 'react-native';
 import * as Animatable from 'react-native-animatable'
 import { SelectList } from 'react-native-dropdown-select-list'
+import { Input } from '~/components/Input';
+
+interface IncidentData {
+  id: number,
+  name: string,
+  evidence: string,
+  criticality: number
+  host: string
+  user_id: number
+}
+
+interface IncidentResponse {
+  status: boolean
+  message: string
+}
 
 export default function About() {
-  const [selected, setSelected] = useState("");
-  console.log(selected)
+  const [loading, setLoading] = useState<boolean>(false)
+  const incidentSearchParams = useLocalSearchParams();
+
+  console.log(typeof incidentSearchParams.user_id)
   
+  const { control, handleSubmit, formState: { errors }, reset } = useForm<IncidentData>({
+    defaultValues: { ...incidentSearchParams}
+  })
+
   const data = [
-      {key:'1', value:'Mobiles', disabled:true},
-      {key:'2', value:'Appliances'},
-      {key:'3', value:'Cameras'},
-      {key:'4', value:'Computers', disabled:true},
-      {key:'5', value:'Vegetables'},
-      {key:'6', value:'Diary Products'},
-      {key:'7', value:'Drinks'},
+      {key: 1, value:'Observação'},
+      {key: 2, value:'Alerta'},
+      {key: 3, value:'Perigoso'},
+      {key: 4, value:'Crítico'}
   ]
+
+  const valueMapper = data.reduce((acc, { key, value }) => {
+    acc[key] = value;
+    return acc;
+  }, {} as Record<number, string>);
+
+  const onSubmit = async (data: IncidentData) => {
+    try {
+      setLoading(true)
+      const token = await AsyncStorage.getItem('jwt_token');
+      const response = await axios.post<IncidentResponse>(
+        'http://192.168.0.86/api/incidents', 
+        {...data}, 
+        {headers: {Authorization: `Bearer ${token}`}}
+      )
+
+      console.log(response.data)
+      if(response.data.status) {
+        Alert.alert(
+          "Cadastrado com sucesso",
+          "Deseja cadastrar um novo incidente?",
+          [
+            {
+              text: "Não",
+              style: "cancel",
+              onPress: () => {
+                reset({
+                  criticality: undefined,
+                  evidence: undefined,
+                  name: undefined,
+                  host: undefined,
+                  id: undefined,
+                })
+                router.push('/home')
+              }
+            },
+            {
+              text: "Sim",
+              onPress: () => {
+                reset({
+                  criticality: 0,
+                  evidence: '',
+                  name: '',
+                  host: '',
+                  id: 0,
+                  user_id: parseInt(incidentSearchParams.user_id as string) 
+                })
+              }
+            }
+          ]
+        );
+        
+      }
+    } catch (error: any) {
+      console.log(error.response.data)
+        if (error.response) {
+          if (error.response.status === 401) {
+            Alert.alert(
+              "Sessão expirada",
+              "Faça login novamente para continuar",
+              [
+                {
+                  text: "OK",
+                  style: "cancel",
+                  onPress: () => {
+                    router.replace('/login')
+                  }
+                }
+              ]
+            );
+          }
+        }
+      setLoading(false)
+    }
+  }
+
   return (
     <>
       
@@ -28,25 +125,101 @@ export default function About() {
       
         <Animatable.View animation="fadeInUp" className={styles.containerForm}>
 
-          <Text className={styles.title}>Titulo</Text>
-          <TextInput className={styles.input} placeholder='Titulo do incidente'/>
-
-          <Text className={styles.title}>Descrição</Text>
-          <TextInput  multiline={true} numberOfLines={10} className={'pl-1 pt-1 border-2 border-gray-400 mb-3 text-base h-24 align-top'} placeholder='Descrição do incidente'/>
-
-          <Text className={styles.title}>Host</Text>
-          <TextInput className={styles.input} placeholder='Host afetado'/>
+        <Controller
+            name='name'
+            control={control}
+            rules={{
+              required: "Digite o título do incidente",
+              pattern: {
+                message: 'Digite um título válido',
+                value: /^[A-Za-zÀ-ÖØ-ÿ\u00C0-\u024F\u1E00-\u1EFF0-9\s'!@#$%^&*()_+=\[\]{};:'",.<>/?\\|`~\u00A0-\u00FF]+$/
+              }
+            }}
+            render={({field: {value, onChange}}) => (
+              <Input 
+                title='Título' 
+                placeholder='Título do incidente'
+                value={value} 
+                onChangeText={onChange}
+                blurOnSubmit={false} />
+            )}
+          />
+          {errors.name && <Text className='text-red-500'>{errors.name.message}</Text>}
+        
+        <Text className={styles.title}>Descrição</Text>
+        <Controller
+            name='evidence'
+            control={control}
+            rules={{
+              required: "Digite a descrição do incidente",
+              minLength: {
+                message: 'Digite no minimo 15 letras',
+                value: 15
+              },
+              pattern: {
+                message: 'Digite uma descrição válida',
+                value: /^[A-Za-zÀ-ÖØ-ÿ\u00C0-\u024F\u1E00-\u1EFF0-9\s'!@#$%^&*()_+=\[\]{};:'",.<>/?\\|`~\u00A0-\u00FF]+$/
+              }
+            }}
+            render={({field: {value, onChange}}) => (
+              <TextInput
+                multiline={true}
+                numberOfLines={10}
+                className={'pl-1 pt-1 border-2 border-gray-400 mb-3 text-base h-24 align-top'}
+                placeholder='Descrição do incidente'
+                value={value}
+                onChangeText={onChange}
+                 />
+            )}
+          />
+          {errors.evidence && <Text className='text-red-500'>{errors.evidence.message}</Text>}
+          
+          <Controller
+            name='host'
+            control={control}
+            rules={{
+              required: "Digite o host do incidente",
+              pattern: {
+                message: 'Digite um host válido',
+                value: /^((?:[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?\.)+(?:[a-zA-Z]{2,6}|[a-zA-Z0-9-]{2,}|xn--[a-zA-Z0-9-]{2,})|localhost)(\/[^\s]*)?$/
+              }
+            }}
+            render={({field: {value, onChange}}) => (
+              <Input 
+                title='Host' 
+                placeholder='Host afetado'
+                value={value} 
+                onChangeText={onChange}
+                 />
+            )}
+          />
+          {errors.host && <Text className='text-red-500'>{errors.host.message}</Text>}
 
           <Text className={styles.title}>Criticidade</Text>
-          <SelectList 
-            setSelected={(val) => setSelected(val)} 
-            data={data} 
-            save="value"
-          />  
+          <Controller
+            name='criticality'
+            control={control}
+            rules={{
+              required: "Selecione a criticidade do incidente",
+            }}
+            render={({field: {value, onChange}}) => (
+              <SelectList
+                setSelected={onChange} 
+                data={data} 
+                save="key"
+                search={false}
+                defaultOption={{ key: value, value: valueMapper[value] }}
+                placeholder='Selecione'
+              />  
+            )}
+          />
+          {errors.criticality && <Text className='text-red-500'>{errors.criticality.message}</Text>}
+          
         
-          <TouchableOpacity className={styles.button}>
-            <Text className={styles.buttonText}>Cadastrar</Text>
+          <TouchableOpacity className={styles.button} onPress={handleSubmit(onSubmit)}>
+            <Text className={styles.buttonText}>{incidentSearchParams.id ? 'Editar' : 'Cadastrar'}</Text>
           </TouchableOpacity>
+
         </Animatable.View>
 
       </SafeAreaView>
