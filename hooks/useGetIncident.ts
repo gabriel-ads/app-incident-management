@@ -3,20 +3,17 @@ import axios from "axios";
 import { router } from "expo-router";
 import { Alert } from "react-native";
 import { RawIncidentsData } from "~/types/incident";
-import { User } from "~/types/user";
 
 interface GetIncident {
   setLoading: (value: boolean) => void
-  setUser: (user: User) => void
+ 
   setIncidentsData: (incidentData: RawIncidentsData) => void
 }
 
-export const useGetIncident = async ({setIncidentsData, setLoading, setUser}: GetIncident) => {
+export const useGetIncident = async ({setIncidentsData, setLoading}: GetIncident) => {
   try {
-    const token = await AsyncStorage.getItem('jwt_token');
-    const user = await axios.post<User>('http://192.168.0.86/api/auth/me', {}, {headers: {Authorization: `Bearer ${token}`}})
-    if(user.data) setUser(user.data)
     setLoading(false)
+    const token = await AsyncStorage.getItem('jwt_token');
 
     const incidentsData = await axios.get<RawIncidentsData>('http://192.168.0.86/api/incidents', {headers: {Authorization: `Bearer ${token}`}})
     if(incidentsData.data) setIncidentsData(incidentsData.data)

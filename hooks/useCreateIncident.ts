@@ -15,7 +15,6 @@ interface CreateIncident {
 
 export const useCreateIncident = async ({setLoading, reset, data, userId}: CreateIncident) => {
   try {
-    setLoading(true)
     const token = await AsyncStorage.getItem('jwt_token');
     const response = await axios.post<IncidentResponse>(
       'http://192.168.0.86/api/incidents', 
@@ -23,7 +22,9 @@ export const useCreateIncident = async ({setLoading, reset, data, userId}: Creat
       {headers: {Authorization: `Bearer ${token}`}}
     )
 
+    console.log(response.data.status)
     if (response.data.status) {
+      console.log('create - entrei aqui')
       setLoading(false)
       Alert.alert(
         "Cadastrado com sucesso",

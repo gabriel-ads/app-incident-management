@@ -1,33 +1,58 @@
-import { Link } from 'expo-router';
-import { useEffect, useState } from 'react';
-import { ActivityIndicator, Alert, SafeAreaView, Text, TouchableOpacity, View } from 'react-native';
+import { Link, router } from 'expo-router';
+import { useEffect, useRef, useState } from 'react';
+import { SafeAreaView, Text, TouchableOpacity, View } from 'react-native';
 import * as Animatable from 'react-native-animatable'
 import { IncidentList} from '~/components/IncidentList';
+import { Loading } from '~/components/Loading';
 import { Search } from '~/components/Search';
 import { useGetIncident } from '~/hooks/useGetIncident';
+import { useGetUser } from '~/hooks/useGetUser';
 import { RawIncidentsData } from '~/types/incident';
 import { User } from '~/types/user';
+
 
 export default function Home() {
   const [loading, setLoading] = useState<boolean>(true)
   const [user, setUser] = useState<User>()
   const [incidentsData, setIncidentsData] = useState<RawIncidentsData>()
   
-  useEffect(() => {
-    if (!incidentsData) useGetIncident({ setIncidentsData, setLoading, setUser })
-  }, [])
+  console.log(user)
+  
+  const incidentsRef = useRef<RawIncidentsData | null>(null);
+  const userRef = useRef<User | null>(null);
 
-  if(loading){
-    return(
-      <View className='flex-1 justify-center items-center'>
-        <ActivityIndicator size="large" color="#A04747" />
-        <Text>Carregando...</Text>
-      </View>
+  useEffect(() => {
+    if (!userRef.current){
+      useGetUser({
+        setUser: data => {
+          setUser(data);
+          userRef.current = data
+        }
+      })
+    }
+    
+    if (!incidentsRef.current) {
+      useGetIncident({ 
+        setIncidentsData: data => {
+          setIncidentsData(data);
+          incidentsRef.current = data;
+        },
+        setLoading
+      });
+    } else {
+      setIncidentsData(incidentsRef.current);
+      setLoading(false);
+    }
+  }, []);
+
+  if (loading) {
+    return (
+      <Loading />
     )
   }
+
   return (
     <>
-      
       <SafeAreaView className={styles.container}>
         <Animatable.View animation="fadeInLeft" delay={300} className={styles.containerHeader}>
           <Text className={styles.message}>Olá, {user?.name}</Text>
@@ -36,15 +61,12 @@ export default function Home() {
         <View className={styles.containerForm}>
           <Search />
           {incidentsData && <IncidentList incidents={incidentsData.incidents} />}
-          
-          <Link href={{ pathname: '/about', params: {user_id: user?.id}}} asChild>
-              <TouchableOpacity className='bg-main-red w-full rounded-md py-6 mt-4 justify-center items-center mb-2'>
-                <Text className='text-white text-lg font-bold'>
-                  Reportar novo incidente
-                </Text>
-              </TouchableOpacity>
-          </Link>
-        </View>
+          <TouchableOpacity className='bg-main-red w-full rounded-md py-6 mt-4 justify-center items-center mb-2' onPress={() => router.replace({ pathname: '/about', params: {user_id: user?.id} })}>
+            <Text className='text-white text-lg font-bold'>
+              Reportar novo incidente
+            </Text>
+          </TouchableOpacity>
+    </View>
       </SafeAreaView>
     </>
   );

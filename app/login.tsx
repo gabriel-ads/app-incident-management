@@ -7,6 +7,7 @@ import { ActivityIndicator, Alert, SafeAreaView, Text, TouchableOpacity, View } 
 import * as Animatable from 'react-native-animatable'
 import { Input } from '~/components/Input';
 import { useLogin } from '~/hooks/useLogin';
+import { Loading } from '~/components/Loading';
 
 
 export interface LoginFormData {
@@ -24,10 +25,7 @@ export default function Login() {
 
   if(loading){
     return(
-      <View className='flex-1 justify-center items-center'>
-        <ActivityIndicator size="large" color="#A04747" />
-        <Text>Carregando...</Text>
-      </View>
+      <Loading />
     )
   }
 
@@ -39,7 +37,6 @@ export default function Login() {
         </Animatable.View>
       
         <Animatable.View animation="fadeInUp" className={styles.containerForm}>
-
           <Controller
             name='email'
             control={control}
@@ -87,7 +84,6 @@ export default function Login() {
               <Text className={styles.registerText}>Não Possui uma conta? Cadastre-se</Text>
             </Link>
           </TouchableOpacity>
-
         </Animatable.View>
       </SafeAreaView>
     </>

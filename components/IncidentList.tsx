@@ -10,10 +10,10 @@ interface IncidentProps {
 }
 
 const handleNavigate = (data: IncidentFormData) => {
-  router.push({ pathname: '/about', params: data });
+  router.replace({ pathname: '/about', params: data });
 };
 
-export function IncidentList({incidents: {data}}: IncidentProps) {
+export function IncidentList({incidents}: IncidentProps) {
 
   const handleDelete = (id: number) => {
       Alert.alert(
@@ -33,12 +33,13 @@ export function IncidentList({incidents: {data}}: IncidentProps) {
         ]
       );
   }
+
   return (
     <>
       <ScrollView>
         <View className='flex gap-2 mt-4'>
           {
-            data.map(({ criticality, name, host, evidence, id, user_id })=>{
+            incidents?.data.map(({ criticality, name, host, evidence, id, user_id })=>{
               return (
                 <TouchableOpacity key={id} onPress={() => handleNavigate({criticality, name, host, evidence, id, user_id})}>
                   <View className='flex flex-row border-zinc-400 border-2 bg-zinc-400 h-24 rounded-3xl'>

@@ -16,7 +16,6 @@ interface IncidentResponse {
 
 export const useUpdateIncident = async ({setLoading, data}: UpdateIncident) => {
   try {
-    setLoading(true)
     const token = await AsyncStorage.getItem('jwt_token');
     const response = await axios.put<IncidentResponse>(
       `http://192.168.0.86/api/incidents/${data.id}`, 
@@ -24,7 +23,9 @@ export const useUpdateIncident = async ({setLoading, data}: UpdateIncident) => {
       {headers: {Authorization: `Bearer ${token}`}}
     )
 
+    console.log(response.data.status)
     if (response.data.status) {
+      console.log('update - entrei aqui')
       setLoading(false)
       Alert.alert(
         "Editado com sucesso",
@@ -33,7 +34,7 @@ export const useUpdateIncident = async ({setLoading, data}: UpdateIncident) => {
           {
             text: "OK",
             onPress: () => {
-              router.push('/home')
+              router.replace('/home')
             }
           }
         ]

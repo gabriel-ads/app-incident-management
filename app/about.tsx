@@ -1,13 +1,14 @@
-import {useLocalSearchParams } from 'expo-router';
-import { useState } from 'react';
+import {router, useLocalSearchParams } from 'expo-router';
+import { useEffect, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
-import { ActivityIndicator, SafeAreaView, Text, TextInput, TouchableOpacity } from 'react-native';
+import { ActivityIndicator, Alert, BackHandler, SafeAreaView, Text, TextInput, TouchableOpacity } from 'react-native';
 import * as Animatable from 'react-native-animatable'
 import { SelectList } from 'react-native-dropdown-select-list'
 import { Input } from '~/components/Input';
 import { useCreateIncident } from '~/hooks/useCreateIncident';
 import { useUpdateIncident } from '~/hooks/useUpdateIncident';
 import { IncidentFormData } from '~/types/incident';
+import { criticalityData, criticalityValueMapper } from '~/utils/criticalityValueMapper';
 
 export default function About() {
   const [loading, setLoading] = useState<boolean>(false)
@@ -17,21 +18,11 @@ export default function About() {
     defaultValues: { ...incidentSearchParams}
   })
 
-  const data = [
-      {key: 1, value:'Observação'},
-      {key: 2, value:'Alerta'},
-      {key: 3, value:'Perigoso'},
-      {key: 4, value:'Crítico'}
-  ]
-
-  const valueMapper = data.reduce((acc, { key, value }) => {
-    acc[key] = value;
-    return acc;
-  }, {} as Record<number, string>);
-
   const userId = parseInt(incidentSearchParams?.user_id as string )
 
   const onSubmit = async (data: IncidentFormData) => {
+    setLoading(true)
+
     if(data.id && data.user_id){
       await useUpdateIncident({data, setLoading})
     } else await useCreateIncident({data, setLoading, reset, userId})
@@ -45,7 +36,6 @@ export default function About() {
         </Animatable.View>
       
         <Animatable.View animation="fadeInUp" className={styles.containerForm}>
-
           <Controller
             name='name'
             control={control}
@@ -127,10 +117,10 @@ export default function About() {
             render={({field: {value, onChange}}) => (
               <SelectList
                 setSelected={onChange} 
-                data={data} 
+                data={criticalityData} 
                 save="key"
                 search={false}
-                defaultOption={{ key: value, value: valueMapper[value] }}
+                defaultOption={{ key: value, value: criticalityValueMapper[value] }}
                 placeholder='Selecione'
               />
             )}
@@ -146,7 +136,6 @@ export default function About() {
               </Text>
             )}
           </TouchableOpacity>
-
         </Animatable.View>
       </SafeAreaView>
     </>
