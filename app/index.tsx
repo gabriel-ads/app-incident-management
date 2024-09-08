@@ -1,38 +1,31 @@
-import { Stack, Link } from 'expo-router';
-import React, { useState } from 'react';
+import { Link } from 'expo-router';
 import { View, TouchableOpacity, Text } from 'react-native';
 import * as Animatable from 'react-native-animatable'
 
 export default function Index() {
   return (
     <>
-    
-    <View className={styles.container}>
-      
-      <View className={styles.containerLogo}>
-        <Animatable.Image
-        animation="flipInY"
-        source={require('../assets/incident-manager-logo.png')}
-        className='w-full h-full'
-        resizeMode='contain'
-        />
+      <View className={styles.container}>
+        <View className={styles.containerLogo}>
+          <Animatable.Image
+          animation="flipInY"
+          source={require('../assets/incident-manager-logo.png')}
+          className='w-full h-full'
+          resizeMode='contain'
+          />
+        </View>
+
+        <Animatable.View className={styles.containerForm} delay={600} animation="fadeInUp">
+          <Text className={styles.title}>Gerencie os problemas de segurança da sua empresa!</Text>
+          <Text className={styles.text}>Faça o login para ter acesso</Text>
+
+          <Link href={{ pathname: '/login'}} asChild>
+            <TouchableOpacity className={styles.button}>
+              <Text className={styles.buttonText}>Acessar</Text>
+            </TouchableOpacity>
+          </Link>
+        </Animatable.View>
       </View>
-
-      <Animatable.View className={styles.containerForm} delay={600} animation="fadeInUp">
-        <Text className={styles.title}>Gerencie os problemas de segurança da sua empresa!</Text>
-        <Text className={styles.text}>Faça o login para ter acesso</Text>
-
-
-        <Link href={{ pathname: '/login'}} asChild>
-          <TouchableOpacity className={styles.button}>
-            <Text className={styles.buttonText}>Acessar</Text>
-          </TouchableOpacity>
-        </Link>
-      </Animatable.View>
-
-      
-
-    </View>
     </>
   );
 }

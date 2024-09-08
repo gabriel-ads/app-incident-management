@@ -1,53 +1,23 @@
-import axios from 'axios';
-import { router } from 'expo-router';
 import  { useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
-import { ActivityIndicator, Alert, SafeAreaView, Text, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, SafeAreaView, Text, TouchableOpacity, View } from 'react-native';
 import * as Animatable from 'react-native-animatable'
 import { Input } from '~/components/Input';
+import { useRegister } from '~/hooks/useRegister';
 
-interface FormData {
+export interface RegisterFormData {
   name: string
   email: string
   password: string
 }
-interface User {
-  name: string
-  email: string
-  updated_at: string
-  created_at: string
-  id: number
-}
-interface RegisterResponse {
-  status: boolean
-  user: User
-  message: string
-}
-
-
 
 export default function Register() {
   const [loading, setLoading] = useState<boolean>(false)
 
-  const {control, handleSubmit, formState: {errors}} = useForm<FormData>()
+  const {control, handleSubmit, formState: {errors}} = useForm<RegisterFormData>()
 
-  const onSubmit = async (data: FormData) => {
-    try {
-      setLoading(true)
-      await axios.post<RegisterResponse>('http://192.168.0.86/api/users', {...data})
-
-      Alert.alert('Sucesso', 'Usuário criado com sucesso');
-
-      router.replace('/login');
-    } catch (error: any) {
-      console.log(error)
-        if(error.response){
-          if (error.response.status === 422) {
-            Alert.alert('Erro', 'O E-mail já está em uso!');
-          }
-        }
-      setLoading(false)
-    }
+  const onSubmit = async (data: RegisterFormData) => {
+    await useRegister({ data, setLoading})
   }
 
   if(loading){
@@ -65,10 +35,8 @@ export default function Register() {
         <Animatable.View animation="fadeInLeft" delay={300} className={styles.containerHeader}>
           <Text className={styles.message}>Registre-se</Text>
         </Animatable.View>
-      
-      
+    
         <Animatable.View animation="fadeInUp" className={styles.containerForm}>
-
           <Controller 
             control={control}
             name='name'
@@ -121,7 +89,7 @@ export default function Register() {
                 message: 'A senha precisa ter no minimo 6 caracteres'
               }
             }}
-            render={({field: {value, onChange}})=>(
+            render={({ field: {value, onChange} }) => (
               <Input
                 title='Senha' 
                 placeholder='Crie uma senha' 
@@ -137,7 +105,6 @@ export default function Register() {
             <Text className={styles.buttonText}>Cadastrar</Text>
           </TouchableOpacity>
         </Animatable.View>
-
       </SafeAreaView>
     </>
   );

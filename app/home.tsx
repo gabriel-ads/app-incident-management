@@ -1,43 +1,20 @@
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import axios from 'axios';
 import { Link } from 'expo-router';
-import React, { useEffect, useState } from 'react';
-import { ActivityIndicator, SafeAreaView, Text, TouchableOpacity, View } from 'react-native';
+import { useEffect, useState } from 'react';
+import { ActivityIndicator, Alert, SafeAreaView, Text, TouchableOpacity, View } from 'react-native';
 import * as Animatable from 'react-native-animatable'
-import { IncidentList, IncidentsData} from '~/components/IncidentList';
+import { IncidentList} from '~/components/IncidentList';
 import { Search } from '~/components/Search';
-
-interface User {
-  id: number
-  name: string
-  email: string
-  email_verified_at: any
-  created_at: string
-  updated_at: string
-}
-
+import { useGetIncident } from '~/hooks/useGetIncident';
+import { RawIncidentsData } from '~/types/incident';
+import { User } from '~/types/user';
 
 export default function Home() {
   const [loading, setLoading] = useState<boolean>(true)
   const [user, setUser] = useState<User>()
-  const [incidentsData, setIncidentsData] = useState<IncidentsData>()
+  const [incidentsData, setIncidentsData] = useState<RawIncidentsData>()
   
   useEffect(() => {
-    const fetchData = async () =>{
-      try {
-        const token = await AsyncStorage.getItem('jwt_token');
-        const user = await axios.post<User>('http://192.168.0.86/api/auth/me', {}, {headers: {Authorization: `Bearer ${token}`}})
-        setUser(user.data)
-        setLoading(false)
-
-        const incidentsData = await axios.get<IncidentsData>('http://192.168.0.86/api/incidents', {headers: {Authorization: `Bearer ${token}`}})
-        setIncidentsData(incidentsData.data)
-
-      } catch (error: any) {
-        console.log(error)
-      }
-    }
-    fetchData()
+    if (!incidentsData) useGetIncident({ setIncidentsData, setLoading, setUser })
   }, [])
 
   if(loading){
@@ -55,7 +32,6 @@ export default function Home() {
         <Animatable.View animation="fadeInLeft" delay={300} className={styles.containerHeader}>
           <Text className={styles.message}>Olá, {user?.name}</Text>
         </Animatable.View>
-      
       
         <View className={styles.containerForm}>
           <Search />

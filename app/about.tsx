@@ -1,34 +1,19 @@
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import axios from 'axios';
-import { router, useLocalSearchParams } from 'expo-router';
+import {useLocalSearchParams } from 'expo-router';
 import { useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
-import { Alert, SafeAreaView, Text, TextInput, TouchableOpacity } from 'react-native';
+import { ActivityIndicator, SafeAreaView, Text, TextInput, TouchableOpacity } from 'react-native';
 import * as Animatable from 'react-native-animatable'
 import { SelectList } from 'react-native-dropdown-select-list'
 import { Input } from '~/components/Input';
-
-interface IncidentData {
-  id: number,
-  name: string,
-  evidence: string,
-  criticality: number
-  host: string
-  user_id: number
-}
-
-interface IncidentResponse {
-  status: boolean
-  message: string
-}
+import { useCreateIncident } from '~/hooks/useCreateIncident';
+import { useUpdateIncident } from '~/hooks/useUpdateIncident';
+import { IncidentFormData } from '~/types/incident';
 
 export default function About() {
   const [loading, setLoading] = useState<boolean>(false)
   const incidentSearchParams = useLocalSearchParams();
-
-  console.log(typeof incidentSearchParams.user_id)
   
-  const { control, handleSubmit, formState: { errors }, reset } = useForm<IncidentData>({
+  const { control, handleSubmit, formState: { errors }, reset } = useForm<IncidentFormData>({
     defaultValues: { ...incidentSearchParams}
   })
 
@@ -44,88 +29,24 @@ export default function About() {
     return acc;
   }, {} as Record<number, string>);
 
-  const onSubmit = async (data: IncidentData) => {
-    try {
-      setLoading(true)
-      const token = await AsyncStorage.getItem('jwt_token');
-      const response = await axios.post<IncidentResponse>(
-        'http://192.168.0.86/api/incidents', 
-        {...data}, 
-        {headers: {Authorization: `Bearer ${token}`}}
-      )
+  const userId = parseInt(incidentSearchParams?.user_id as string )
 
-      console.log(response.data)
-      if(response.data.status) {
-        Alert.alert(
-          "Cadastrado com sucesso",
-          "Deseja cadastrar um novo incidente?",
-          [
-            {
-              text: "Não",
-              style: "cancel",
-              onPress: () => {
-                reset({
-                  criticality: undefined,
-                  evidence: undefined,
-                  name: undefined,
-                  host: undefined,
-                  id: undefined,
-                })
-                router.push('/home')
-              }
-            },
-            {
-              text: "Sim",
-              onPress: () => {
-                reset({
-                  criticality: 0,
-                  evidence: '',
-                  name: '',
-                  host: '',
-                  id: 0,
-                  user_id: parseInt(incidentSearchParams.user_id as string) 
-                })
-              }
-            }
-          ]
-        );
-        
-      }
-    } catch (error: any) {
-      console.log(error.response.data)
-        if (error.response) {
-          if (error.response.status === 401) {
-            Alert.alert(
-              "Sessão expirada",
-              "Faça login novamente para continuar",
-              [
-                {
-                  text: "OK",
-                  style: "cancel",
-                  onPress: () => {
-                    router.replace('/login')
-                  }
-                }
-              ]
-            );
-          }
-        }
-      setLoading(false)
-    }
+  const onSubmit = async (data: IncidentFormData) => {
+    if(data.id && data.user_id){
+      await useUpdateIncident({data, setLoading})
+    } else await useCreateIncident({data, setLoading, reset, userId})
   }
 
   return (
     <>
-      
       <SafeAreaView className={styles.container}>
         <Animatable.View animation="fadeInLeft" delay={300} className={styles.containerHeader}>
           <Text className={styles.message}>Sobre o incidente</Text>
         </Animatable.View>
       
-      
         <Animatable.View animation="fadeInUp" className={styles.containerForm}>
 
-        <Controller
+          <Controller
             name='name'
             control={control}
             rules={{
@@ -141,13 +62,14 @@ export default function About() {
                 placeholder='Título do incidente'
                 value={value} 
                 onChangeText={onChange}
-                blurOnSubmit={false} />
+                blurOnSubmit={false}
+                editable={!loading} />
             )}
           />
           {errors.name && <Text className='text-red-500'>{errors.name.message}</Text>}
-        
-        <Text className={styles.title}>Descrição</Text>
-        <Controller
+          
+          <Text className={styles.title}>Descrição</Text>
+          <Controller
             name='evidence'
             control={control}
             rules={{
@@ -169,11 +91,11 @@ export default function About() {
                 placeholder='Descrição do incidente'
                 value={value}
                 onChangeText={onChange}
-                 />
+                editable={!loading} />
             )}
           />
           {errors.evidence && <Text className='text-red-500'>{errors.evidence.message}</Text>}
-          
+            
           <Controller
             name='host'
             control={control}
@@ -190,7 +112,7 @@ export default function About() {
                 placeholder='Host afetado'
                 value={value} 
                 onChangeText={onChange}
-                 />
+                editable={!loading} />
             )}
           />
           {errors.host && <Text className='text-red-500'>{errors.host.message}</Text>}
@@ -210,18 +132,22 @@ export default function About() {
                 search={false}
                 defaultOption={{ key: value, value: valueMapper[value] }}
                 placeholder='Selecione'
-              />  
+              />
             )}
           />
           {errors.criticality && <Text className='text-red-500'>{errors.criticality.message}</Text>}
           
-        
-          <TouchableOpacity className={styles.button} onPress={handleSubmit(onSubmit)}>
-            <Text className={styles.buttonText}>{incidentSearchParams.id ? 'Editar' : 'Cadastrar'}</Text>
+          <TouchableOpacity className={styles.button} onPress={handleSubmit(onSubmit)} disabled={loading}>
+            {loading ? (
+              <ActivityIndicator color="#fff" />
+            ) : (
+              <Text className={styles.buttonText}>  
+                {incidentSearchParams.id ? 'Editar' : 'Cadastrar'}
+              </Text>
+            )}
           </TouchableOpacity>
 
         </Animatable.View>
-
       </SafeAreaView>
     </>
   );

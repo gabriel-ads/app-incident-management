@@ -6,42 +6,20 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { ActivityIndicator, Alert, SafeAreaView, Text, TouchableOpacity, View } from 'react-native';
 import * as Animatable from 'react-native-animatable'
 import { Input } from '~/components/Input';
+import { useLogin } from '~/hooks/useLogin';
 
 
-interface FormData {
+export interface LoginFormData {
   email: string
   password: string
 }
 
-interface LoginResponse {
-  access_token: string
-  expires_in: number
-  status: boolean
-  token_type: string
-}
-
 export default function Login() {
   const [loading, setLoading] = useState<boolean>(false)
-  const {control, handleSubmit, formState: { errors }} = useForm<FormData>()
+  const {control, handleSubmit, formState: { errors }} = useForm<LoginFormData>()
 
-  const onSubmit = async (data: FormData) => {
-    try {
-      setLoading(true)
-      const response = await axios.post<LoginResponse>('http://192.168.0.86/api/auth/login', {...data})
-
-      const { access_token } = response.data;
-
-      await AsyncStorage.setItem('jwt_token', access_token);
-
-      router.replace('/home');
-    } catch (error: any) {
-        if(error.response){
-          if (error.response.status === 401) {
-            Alert.alert('Erro', 'Usuário ou senha inválido.');
-          }
-        }
-      setLoading(false)
-    }
+  const onSubmit = async (data: LoginFormData) => {
+   await useLogin({ data, setLoading})
   }
 
   if(loading){
@@ -111,7 +89,6 @@ export default function Login() {
           </TouchableOpacity>
 
         </Animatable.View>
-
       </SafeAreaView>
     </>
   );
