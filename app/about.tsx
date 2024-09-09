@@ -1,4 +1,4 @@
-import { useMutation } from '@tanstack/react-query';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import {router, useLocalSearchParams } from 'expo-router';
 import { Controller, useForm } from 'react-hook-form';
 import { ActivityIndicator, Alert, SafeAreaView, Text, TextInput, TouchableOpacity } from 'react-native';
@@ -16,14 +16,24 @@ interface createInterface{
 
 export default function About() {
   const incidentSearchParams = useLocalSearchParams();
+  const queryClient = useQueryClient()
 
-  
   const updateIncidentMutation = useMutation({
-    mutationFn: (data: IncidentFormData) => updateIncident(data)
+    mutationFn: (data: IncidentFormData) => updateIncident(data),
+    onSuccess: () => {
+      setTimeout(() => {
+        queryClient.invalidateQueries({ queryKey: ['incidents'] });
+      }, 3000);
+    }
   })
   
   const createIncidentMutation = useMutation({
-    mutationFn: ({ data,userId }: createInterface) => createIncident(data, userId)
+    mutationFn: ({ data,userId }: createInterface) => createIncident(data, userId),
+    onSuccess: () => {
+      setTimeout(() => {
+        queryClient.invalidateQueries({ queryKey: ['incidents'] });
+      }, 3000);
+    }
   })
   
   const { control, handleSubmit, formState: { errors } } = useForm<IncidentFormData>({

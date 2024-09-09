@@ -17,8 +17,8 @@ export const login = async (data: LoginFormData) => {
     router.replace('/home');
   } catch (error: any) {
     if(error.response){
-      if (error.response.status === 422) {
-        Alert.alert('Erro', 'O E-mail já está em uso!');
+      if (error.response.status === 401) {
+        Alert.alert('Erro', 'E-mail ou senha incorreto');
       }
     }
     throw new Error('Failed to login user');

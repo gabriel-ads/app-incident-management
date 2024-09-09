@@ -11,10 +11,9 @@ export interface RegisterFormData {
   password: string
 }
 
-export default function Register() {
-  
+export default function Register() {  
   const { mutate: registerUserMutation, isPending } = useMutation({
-    mutationFn: (data: RegisterFormData) => registerUser(data)
+    mutationFn: (data: RegisterFormData) => registerUser(data),
   })
 
   const {control, handleSubmit, formState: {errors}} = useForm<RegisterFormData>()

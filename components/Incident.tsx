@@ -1,5 +1,5 @@
 import { Feather } from '@expo/vector-icons'
-import { useMutation } from '@tanstack/react-query';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { router } from 'expo-router'
 import { memo } from 'react';
 import { View, TouchableOpacity, Text, Alert } from 'react-native'
@@ -42,9 +42,16 @@ const handleDelete = ({id, deleteIncidentMutation}: deleteInterface) => {
 
 export const Incident = memo(({incident}: IncidentProps) => {
   const { criticality, name, host, evidence, id, user_id } = incident
+  const queryClient = useQueryClient()
 
   const {mutate: deleteIncidentMutation} = useMutation({
-    mutationFn: (id: number) => deleteIncident(id)
+    mutationFn: (id: number) => deleteIncident(id),
+    onSuccess: () => { 
+      setTimeout(() => {
+        queryClient.invalidateQueries({ queryKey: ['incidents'] });
+      }, 3000);
+  }
+    
   })
 
   if (!incident) {

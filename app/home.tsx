@@ -11,8 +11,7 @@ import { Search } from '~/components/Search';
 import { RawIncidentsData } from '~/types/incident';
 
 export default function Home () {
-
-  const {data: user, isLoading, error} = useQuery({
+  const {data: user, isLoading} = useQuery({
     queryKey: ['user'],
     queryFn: fetchUser
   })
@@ -20,10 +19,9 @@ export default function Home () {
   const {
     data: incidentsData,
     isLoading: isIncidentLoading,
-    error: incidentError,
     fetchNextPage,
     hasNextPage,
-    isFetchingNextPage
+    isFetchingNextPage,
   } = useInfiniteQuery<RawIncidentsData>({
     queryKey: ['incidents'],
     queryFn: ({ pageParam }) => fetchIncidents(pageParam as number),
@@ -55,23 +53,33 @@ export default function Home () {
         </Animatable.View>
       
         <View className={styles.containerForm}>
-          <Search />
+          
 
           {
             allIncidents && allIncidents.length > 0 ? 
-            (<FlatList
-              className='mt-4'
-              data={allIncidents}
-              renderItem={({item})=> <Incident incident={item}/>}
-              keyExtractor={(item) => item?.id.toString()}
-              onEndReached={() => {
-                if (!isFetchingNextPage && hasNextPage) {
-                  fetchNextPage();
-                }
-              }}
-              onEndReachedThreshold={0.5}
-              ListFooterComponent={isFetchingNextPage ? <ActivityIndicator size="large" /> : null}
-            />) : (<Text>Não tem nada</Text>)
+            (
+            <>
+              <Search />
+              <FlatList
+                className='mt-4'
+                data={allIncidents}
+                renderItem={({item})=> <Incident incident={item}/>}
+                keyExtractor={(item) => item?.id.toString()}
+                onEndReached={() => {
+                  if (!isFetchingNextPage && hasNextPage) {
+                    fetchNextPage();
+                  }
+                }}
+                onEndReachedThreshold={0.5}
+                ListFooterComponent={isFetchingNextPage ? <ActivityIndicator size="large" /> : null}
+              />
+            </>) : (
+              <>
+                <View className='flex flex-grow justify-center items-center'>
+                  <Text>Você ainda não tem incidentes :D</Text>
+                </View>
+              </>
+            )
           }
         
           <TouchableOpacity className='bg-main-red w-full rounded-md py-6 mt-4 justify-center items-center mb-2' onPress={() => router.push({ pathname: '/about', params: {user_id: user?.id} })}>

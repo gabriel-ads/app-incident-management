@@ -12,7 +12,6 @@ export const createIncident = async (data: IncidentFormData, userId: number) => 
     return incidentResponse.data
   } catch (error: any) {
     if (error.response) {
-      console.log(error.response.data)
       if (error.response.status === 401) {
         Alert.alert(
           "Sessão expirada",
