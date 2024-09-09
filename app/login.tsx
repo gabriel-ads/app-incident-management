@@ -1,13 +1,11 @@
-import axios from 'axios';
-import { useState } from 'react';
-import { Link, router } from 'expo-router';
+import { Link } from 'expo-router';
 import { useForm, Controller } from 'react-hook-form';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import { ActivityIndicator, Alert, SafeAreaView, Text, TouchableOpacity, View } from 'react-native';
+import { SafeAreaView, Text, TouchableOpacity } from 'react-native';
 import * as Animatable from 'react-native-animatable'
 import { Input } from '~/components/Input';
-import { useLogin } from '~/hooks/useLogin';
 import { Loading } from '~/components/Loading';
+import { useMutation } from '@tanstack/react-query';
+import { login } from '~/api/login';
 
 
 export interface LoginFormData {
@@ -16,14 +14,17 @@ export interface LoginFormData {
 }
 
 export default function Login() {
-  const [loading, setLoading] = useState<boolean>(false)
   const {control, handleSubmit, formState: { errors }} = useForm<LoginFormData>()
 
+  const {mutate: loginMutation, isPending} = useMutation({
+    mutationFn: (data: LoginFormData) => login(data)
+  })
+
   const onSubmit = async (data: LoginFormData) => {
-   await useLogin({ data, setLoading})
+   loginMutation(data)
   }
 
-  if(loading){
+  if(isPending){
     return(
       <Loading />
     )

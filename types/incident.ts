@@ -1,6 +1,6 @@
 export interface FullyIncidentsResponse {
   current_page: number
-  data: Incident[]
+  data: IncidentInterface[]
   first_page_url: string
   from: number
   last_page: number
@@ -14,7 +14,7 @@ export interface FullyIncidentsResponse {
   total: number
 }
 
-interface Incident {
+export interface IncidentInterface {
   id: number
   name: string
   evidence: string
@@ -37,7 +37,7 @@ export interface RawIncidentsData {
   incidents: FullyIncidentsResponse
 }
 
-export type IncidentFormData = Pick<Incident, 'id' | 'name' | 'evidence' | 'criticality' | 'host' | 'user_id'>
+export type IncidentFormData = Pick<IncidentInterface, 'id' | 'name' | 'evidence' | 'criticality' | 'host' | 'user_id'>
 
 export interface IncidentResponse {
   status: boolean

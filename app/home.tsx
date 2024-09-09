@@ -1,51 +1,43 @@
-import { Link, router } from 'expo-router';
-import { useEffect, useRef, useState } from 'react';
-import { SafeAreaView, Text, TouchableOpacity, View } from 'react-native';
+import { useInfiniteQuery, useQuery } from '@tanstack/react-query';
+import { router } from 'expo-router';
+import React from 'react';
+import { ActivityIndicator, FlatList, SafeAreaView, Text, TouchableOpacity, View } from 'react-native';
 import * as Animatable from 'react-native-animatable'
-import { IncidentList} from '~/components/IncidentList';
+import { fetchIncidents } from '~/api/fetchIncidents';
+import { fetchUser } from '~/api/fetchUser';
+import { Incident } from '~/components/Incident';
 import { Loading } from '~/components/Loading';
 import { Search } from '~/components/Search';
-import { useGetIncident } from '~/hooks/useGetIncident';
-import { useGetUser } from '~/hooks/useGetUser';
 import { RawIncidentsData } from '~/types/incident';
-import { User } from '~/types/user';
 
+export default function Home () {
 
-export default function Home() {
-  const [loading, setLoading] = useState<boolean>(true)
-  const [user, setUser] = useState<User>()
-  const [incidentsData, setIncidentsData] = useState<RawIncidentsData>()
-  
-  console.log(user)
-  
-  const incidentsRef = useRef<RawIncidentsData | null>(null);
-  const userRef = useRef<User | null>(null);
+  const {data: user, isLoading, error} = useQuery({
+    queryKey: ['user'],
+    queryFn: fetchUser
+  })
 
-  useEffect(() => {
-    if (!userRef.current){
-      useGetUser({
-        setUser: data => {
-          setUser(data);
-          userRef.current = data
-        }
-      })
-    }
-    
-    if (!incidentsRef.current) {
-      useGetIncident({ 
-        setIncidentsData: data => {
-          setIncidentsData(data);
-          incidentsRef.current = data;
-        },
-        setLoading
-      });
-    } else {
-      setIncidentsData(incidentsRef.current);
-      setLoading(false);
-    }
-  }, []);
+  const {
+    data: incidentsData,
+    isLoading: isIncidentLoading,
+    error: incidentError,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage
+  } = useInfiniteQuery<RawIncidentsData>({
+    queryKey: ['incidents'],
+    queryFn: ({ pageParam }) => fetchIncidents(pageParam as number),
+    initialPageParam: 1,
+    getNextPageParam: (lastPage) => {
+      const nextPageUrl = lastPage.incidents?.next_page_url;
+      if(nextPageUrl) return lastPage.incidents?.current_page + 1
+      return undefined
+    },
+  });
 
-  if (loading) {
+  const allIncidents = incidentsData?.pages.flatMap(page => page.incidents?.data || []);
+
+  if (isLoading || isIncidentLoading) {
     return (
       <Loading />
     )
@@ -55,13 +47,34 @@ export default function Home() {
     <>
       <SafeAreaView className={styles.container}>
         <Animatable.View animation="fadeInLeft" delay={300} className={styles.containerHeader}>
-          <Text className={styles.message}>Olá, {user?.name}</Text>
+          {user ? (
+            <Text className={styles.message}>Olá, {user.name}</Text>
+          ) : (
+            <Text className={styles.message}>Olá, Usuário</Text>
+          )}
         </Animatable.View>
       
         <View className={styles.containerForm}>
           <Search />
-          {incidentsData && <IncidentList incidents={incidentsData.incidents} />}
-          <TouchableOpacity className='bg-main-red w-full rounded-md py-6 mt-4 justify-center items-center mb-2' onPress={() => router.replace({ pathname: '/about', params: {user_id: user?.id} })}>
+
+          {
+            allIncidents && allIncidents.length > 0 ? 
+            (<FlatList
+              className='mt-4'
+              data={allIncidents}
+              renderItem={({item})=> <Incident incident={item}/>}
+              keyExtractor={(item) => item?.id.toString()}
+              onEndReached={() => {
+                if (!isFetchingNextPage && hasNextPage) {
+                  fetchNextPage();
+                }
+              }}
+              onEndReachedThreshold={0.5}
+              ListFooterComponent={isFetchingNextPage ? <ActivityIndicator size="large" /> : null}
+            />) : (<Text>Não tem nada</Text>)
+          }
+        
+          <TouchableOpacity className='bg-main-red w-full rounded-md py-6 mt-4 justify-center items-center mb-2' onPress={() => router.push({ pathname: '/about', params: {user_id: user?.id} })}>
             <Text className='text-white text-lg font-bold'>
               Reportar novo incidente
             </Text>

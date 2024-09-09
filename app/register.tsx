@@ -1,9 +1,9 @@
-import  { useState } from 'react';
+import { useMutation } from '@tanstack/react-query';
 import { Controller, useForm } from 'react-hook-form';
 import { ActivityIndicator, SafeAreaView, Text, TouchableOpacity, View } from 'react-native';
 import * as Animatable from 'react-native-animatable'
+import { registerUser } from '~/api/registerUser';
 import { Input } from '~/components/Input';
-import { useRegister } from '~/hooks/useRegister';
 
 export interface RegisterFormData {
   name: string
@@ -12,15 +12,18 @@ export interface RegisterFormData {
 }
 
 export default function Register() {
-  const [loading, setLoading] = useState<boolean>(false)
+  
+  const { mutate: registerUserMutation, isPending } = useMutation({
+    mutationFn: (data: RegisterFormData) => registerUser(data)
+  })
 
   const {control, handleSubmit, formState: {errors}} = useForm<RegisterFormData>()
 
-  const onSubmit = async (data: RegisterFormData) => {
-    await useRegister({ data, setLoading})
+  const onSubmit = (data: RegisterFormData) => {
+    registerUserMutation(data)
   }
 
-  if(loading){
+  if(isPending){
     return(
       <View className='flex-1 justify-center items-center'>
         <ActivityIndicator size="large" color="#A04747" />

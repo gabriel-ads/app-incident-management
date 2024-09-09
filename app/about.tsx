@@ -1,33 +1,73 @@
+import { useMutation } from '@tanstack/react-query';
 import {router, useLocalSearchParams } from 'expo-router';
-import { useEffect, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
-import { ActivityIndicator, Alert, BackHandler, SafeAreaView, Text, TextInput, TouchableOpacity } from 'react-native';
+import { ActivityIndicator, Alert, SafeAreaView, Text, TextInput, TouchableOpacity } from 'react-native';
 import * as Animatable from 'react-native-animatable'
 import { SelectList } from 'react-native-dropdown-select-list'
+import { createIncident } from '~/api/createIncident';
+import { updateIncident } from '~/api/updateIncident';
 import { Input } from '~/components/Input';
-import { useCreateIncident } from '~/hooks/useCreateIncident';
-import { useUpdateIncident } from '~/hooks/useUpdateIncident';
 import { IncidentFormData } from '~/types/incident';
 import { criticalityData, criticalityValueMapper } from '~/utils/criticalityValueMapper';
 
+interface createInterface{
+  data: IncidentFormData, userId: number
+}
+
 export default function About() {
-  const [loading, setLoading] = useState<boolean>(false)
   const incidentSearchParams = useLocalSearchParams();
+
   
-  const { control, handleSubmit, formState: { errors }, reset } = useForm<IncidentFormData>({
+  const updateIncidentMutation = useMutation({
+    mutationFn: (data: IncidentFormData) => updateIncident(data)
+  })
+  
+  const createIncidentMutation = useMutation({
+    mutationFn: ({ data,userId }: createInterface) => createIncident(data, userId)
+  })
+  
+  const { control, handleSubmit, formState: { errors } } = useForm<IncidentFormData>({
     defaultValues: { ...incidentSearchParams}
   })
+
+  const loading = updateIncidentMutation.isPending || createIncidentMutation.isPending
 
   const userId = parseInt(incidentSearchParams?.user_id as string )
 
   const onSubmit = async (data: IncidentFormData) => {
-    setLoading(true)
 
     if(data.id && data.user_id){
-      await useUpdateIncident({data, setLoading})
-    } else await useCreateIncident({data, setLoading, reset, userId})
+      updateIncidentMutation.mutate(data)
+    } else createIncidentMutation.mutate({ data, userId })
   }
 
+  updateIncidentMutation.isSuccess ? Alert.alert(
+    "Editado com sucesso",
+    "Seu incidente foi atualizado!",
+    [
+      {
+        text: "OK",
+        onPress: () => {
+          router.back()
+        }
+      }
+    ]
+  ): null
+  
+  createIncidentMutation.isSuccess  ? Alert.alert(
+    "Criado com sucesso",
+    "Seu incidente foi criado!",
+    [
+      {
+        text: "OK",
+        onPress: () => {
+          router.back()
+        }
+      }
+    ]
+  ): null
+
+  
   return (
     <>
       <SafeAreaView className={styles.container}>
