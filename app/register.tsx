@@ -114,7 +114,7 @@ export default function Register() {
 
 const styles = {
   container: 'flex-1 bg-zinc-400',
-  containerHeader: 'mt-10 mb-12 pl-10',
+  containerHeader: 'mx-6 my-10',
   message: 'text-3xl font-bold text-white',
   containerForm: 'flex-1 rounded-tl-3xl rounded-tr-3xl bg-white pl-5 pr-5',
   title: 'text-xl mt-7',

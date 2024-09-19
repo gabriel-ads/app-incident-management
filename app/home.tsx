@@ -8,8 +8,12 @@ import { Incident } from '~/components/Incident';
 import { Loading } from '~/components/Loading';
 import { Search } from '~/components/Search';
 import { RawIncidentsData } from '~/types/incident';
+import { createEchoConnection } from '../echo';
+import { useEffect } from 'react';
+import { LogOut } from '~/components/Logout';
 
 export default function Home () {
+
   const {data: user, isLoading} = useQuery({
     queryKey: ['user'],
     queryFn: fetchUser
@@ -27,10 +31,14 @@ export default function Home () {
     initialPageParam: 1,
     getNextPageParam: (lastPage) => {
       const nextPageUrl = lastPage.incidents?.next_page_url;
-      if(nextPageUrl) return lastPage.incidents?.current_page + 1
+      if (nextPageUrl) return lastPage.incidents?.current_page + 1
       return undefined
     },
   });
+
+  useEffect(() => {
+    if (user) createEchoConnection(user.id)
+  }, [user]);
 
   const allIncidents = incidentsData?.pages.flatMap(page => page.incidents?.data || []);
 
@@ -45,15 +53,16 @@ export default function Home () {
       <SafeAreaView className={styles.container}>
         <Animatable.View animation="fadeInLeft" delay={300} className={styles.containerHeader}>
           {user ? (
-            <Text className={styles.message}>Olá, {user.name}</Text>
+            <View className='flex-row justify-between'>
+              <Text className={styles.message}>Olá, {user.name}</Text>
+              <LogOut />
+            </View>
           ) : (
             <Text className={styles.message}>Olá, Usuário</Text>
           )}
         </Animatable.View>
       
         <View className={styles.containerForm}>
-          
-
           {
             allIncidents && allIncidents.length > 0 ? 
             (
@@ -86,7 +95,7 @@ export default function Home () {
               Reportar novo incidente
             </Text>
           </TouchableOpacity>
-    </View>
+        </View>
       </SafeAreaView>
     </>
   );
@@ -94,7 +103,7 @@ export default function Home () {
 
 const styles = {
   container: 'flex-1 bg-zinc-400',
-  containerHeader: 'mt-10 mb-12 pl-10',
+  containerHeader: 'mx-6 my-10',
   message: 'text-3xl font-bold text-white',
   containerForm: 'flex-1 rounded-tl-3xl rounded-tr-3xl bg-white pl-5 pr-5',
   title: 'text-xl mt-7',

@@ -93,12 +93,11 @@ export default function Login() {
 
 const styles = {
   container: 'flex-1 bg-zinc-400',
-  containerHeader: 'mt-10 mb-12 pl-10',
+  containerHeader: 'mx-6 my-10',
   message: 'text-3xl font-bold text-white',
   containerForm: 'flex-1 rounded-tl-3xl rounded-tr-3xl bg-white pl-5 pr-5',
   button: 'bg-main-red w-full rounded-md py-4 mt-4 justify-center items-center',
   buttonText: 'text-white text-lg font-bold',
   buttonRegister: 'mt-4 self-center',
   registerText: 'color-gray-400',
-  loading: ''
 };

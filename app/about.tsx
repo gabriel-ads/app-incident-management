@@ -28,7 +28,7 @@ export default function About() {
   })
   
   const createIncidentMutation = useMutation({
-    mutationFn: ({ data,userId }: createInterface) => createIncident(data, userId),
+    mutationFn: ({ data, userId }: createInterface) => createIncident(data, userId),
     onSuccess: () => {
       setTimeout(() => {
         queryClient.invalidateQueries({ queryKey: ['incidents'] });
@@ -37,7 +37,7 @@ export default function About() {
   })
   
   const { control, handleSubmit, formState: { errors } } = useForm<IncidentFormData>({
-    defaultValues: { ...incidentSearchParams}
+    defaultValues: { ...incidentSearchParams }
   })
 
   const loading = updateIncidentMutation.isPending || createIncidentMutation.isPending
@@ -194,7 +194,7 @@ export default function About() {
 
 const styles = {
   container: 'flex-1 bg-zinc-400',
-  containerHeader: 'mt-10 mb-12 pl-10',
+  containerHeader: 'mt-10 mb-12 pl-6',
   message: 'text-3xl font-bold text-white',
   containerForm: 'flex-1 rounded-tl-3xl rounded-tr-3xl bg-white pl-5 pr-5',
   title: 'text-xl mt-7 mb-1',
